@@ -71,4 +71,4 @@ ENV HOSTNAME "0.0.0.0"
 # --- AUTOMATYCZNY START ---
 # 1. prisma db push (Tworzy/aktualizuje tabele w bazie)
 # 2. node server.js (Uruchamia stronę)
-CMD ["/bin/sh", "-c", "prisma db push && node server.js"]
+CMD ["/bin/sh", "-c", "prisma db push --skip-generate && node server.js"]
