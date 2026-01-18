@@ -12,26 +12,23 @@ datasource db {
 // 2. Użytkownik i Gospodarstwo
 // Jeden użytkownik = Jedno gospodarstwo (w tym modelu MVP)
 model User {
-  id             String    @id @default(uuid())
-  email          String    @unique
-  password       String    // Hasło będzie szyfrowane
-  role           String    @default("USER") // "ADMIN" lub "USER"
-
-  // Dane Gospodarstwa (Wymagane przez PIORiN)
-  farmName       String?   // Nazwa gospodarstwa
-  farmAddress    String?   // Adres
-  piorinNumber   String?   // Nr ewidencji producenta
+  id               String    @id @default(uuid())
+  email            String    @unique
+  password         String
+  role             String    @default("USER") // ADMIN lub USER
+  fullName         String?   // Imię i Nazwisko
+  farmName         String?
+  farmAddress      String?
+  piorinNumber     String?
+  licenseStatus    String    @default("TRIAL") // ACTIVE, EXPIRED, TRIAL
+  licenseExpiresAt DateTime? // Data ważności
+  createdAt        DateTime  @default(now())
   
-  // Licencja
-  licenseExpiresAt DateTime?
-
-  createdAt      DateTime  @default(now())
-
-  // Relacje - co należy do tego rolnika
-  fields         Field[]
-  warehouseItems WarehouseItem[]
-  treatments     Treatment[]
+  fields           Field[]
+  warehouseItems   WarehouseItem[]
+  treatments       Treatment[]
 }
+
 
 // 3. Pola Uprawne
 model Field {
