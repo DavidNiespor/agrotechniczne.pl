@@ -1,41 +1,50 @@
-# 1. Baza
-FROM node:18-slim AS deps
+# 1. Baza: Używamy Debian Slim
+FROM node:18-slim AS base
+
+# 2. Instalacja zależności
+FROM base AS deps
 WORKDIR /app
 RUN apt-get update -y && apt-get install -y openssl
 COPY package.json ./
 RUN npm install --legacy-peer-deps
 
-# 2. Budowanie
-FROM node:18-slim AS builder
+# 3. Budowanie
+FROM base AS builder
 WORKDIR /app
-
-# Najpierw kod, potem moduły (ważna kolejność!)
 COPY . .
 COPY --from=deps /app/node_modules ./node_modules
 
-# Generowanie klienta bazy
+# Generowanie klienta
 RUN npx prisma generate
 
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# --- PRZYWRACAMY BUDOWANIE (Bo naprawiłeś kod!) ---
+# Budowanie aplikacji
 RUN npm run build
-# --------------------------------------------------
 
-# 3. Uruchamianie
-FROM node:18-slim AS runner
+# 4. Uruchamianie (PRODUKCJA)
+FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
+# Instalujemy OpenSSL ORAZ globalnie Prismę (żeby móc robić db push)
+RUN apt-get update -y && apt-get install -y openssl
+RUN npm install -g prisma
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Kopiowanie plików wynikowych
-#COPY --from=builder /app/public ./public
+# Kopiujemy pliki aplikacji
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# --- KLUCZOWE: Kopiujemy schemat bazy, żeby automat miał na czym pracować ---
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+
+# (Opcjonalnie: Jeśli nie masz folderu public, zostaw to zakomentowane)
+# COPY --from=builder /app/public ./public
 
 USER nextjs
 
@@ -43,5 +52,7 @@ EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-# --- PRZYWRACAMY START SERWERA ---
-CMD ["node", "server.js"]
+# --- AUTOMATYCZNY START ---
+# 1. Wypychamy zmiany do bazy (db push)
+# 2. Startujemy serwer (node server.js)
+CMD ["/bin/sh", "-c", "prisma db push && node server.js"]
