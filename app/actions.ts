@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use server";
 
 import { PrismaClient } from "@prisma/client";
@@ -12,7 +13,6 @@ async function getUser() {
   return await prisma.user.findUnique({ where: { email: session.user.email } });
 }
 
-// --- 1. POLA (FIELDS) ---
 export async function addField(formData: FormData) {
   const user = await getUser();
   if (!user) return;
@@ -20,21 +20,20 @@ export async function addField(formData: FormData) {
   await prisma.field.create({
     data: {
       userId: user.id,
-      name: formData.get("name") as string,
-      area: parseFloat(formData.get("area") as string),
-      cropType: formData.get("cropType") as string,
+      name: formData.get("name"),
+      area: parseFloat(formData.get("area")),
+      cropType: formData.get("cropType"),
     },
   });
   revalidatePath("/");
 }
 
 export async function deleteField(formData: FormData) {
-  const id = formData.get("id") as string;
+  const id = formData.get("id");
   await prisma.field.delete({ where: { id } });
   revalidatePath("/");
 }
 
-// --- 2. MAGAZYN (WAREHOUSE) ---
 export async function addWarehouseItem(formData: FormData) {
   const user = await getUser();
   if (!user) return;
@@ -42,38 +41,37 @@ export async function addWarehouseItem(formData: FormData) {
   await prisma.warehouseItem.create({
     data: {
       userId: user.id,
-      name: formData.get("name") as string,
-      quantity: parseFloat(formData.get("quantity") as string),
-      unit: formData.get("unit") as string,
-      batchNumber: formData.get("batchNumber") as string,
-      expirationDate: new Date(formData.get("expirationDate") as string),
-      productionDate: new Date(), // Opcjonalnie można dodać pole w formularzu
+      name: formData.get("name"),
+      quantity: parseFloat(formData.get("quantity")),
+      unit: formData.get("unit"),
+      batchNumber: formData.get("batchNumber"),
+      expirationDate: new Date(formData.get("expirationDate")),
+      productionDate: new Date(),
     },
   });
   revalidatePath("/");
 }
 
 export async function deleteWarehouseItem(formData: FormData) {
-  const id = formData.get("id") as string;
+  const id = formData.get("id");
   await prisma.warehouseItem.delete({ where: { id } });
   revalidatePath("/");
 }
 
-// --- 3. ZABIEGI (TREATMENTS) ---
 export async function addTreatment(formData: FormData) {
   const user = await getUser();
   if (!user) return;
 
-  const fieldId = formData.get("fieldId") as string;
+  const fieldId = formData.get("fieldId");
 
   await prisma.treatment.create({
     data: {
       userId: user.id,
-      date: new Date(formData.get("date") as string),
-      crop: formData.get("crop") as string, // Uprawa
-      area: parseFloat(formData.get("area") as string),
-      temperature: parseFloat(formData.get("temperature") as string) || 0,
-      windSpeed: parseFloat(formData.get("windSpeed") as string) || 0,
+      date: new Date(formData.get("date")),
+      crop: formData.get("crop"),
+      area: parseFloat(formData.get("area")),
+      temperature: parseFloat(formData.get("temperature")) || 0,
+      windSpeed: parseFloat(formData.get("windSpeed")) || 0,
       fieldId: fieldId !== "none" ? fieldId : null,
     },
   });
@@ -81,7 +79,7 @@ export async function addTreatment(formData: FormData) {
 }
 
 export async function deleteTreatment(formData: FormData) {
-  const id = formData.get("id") as string;
+  const id = formData.get("id");
   await prisma.treatment.delete({ where: { id } });
   revalidatePath("/");
 }

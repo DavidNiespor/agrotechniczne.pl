@@ -1,4 +1,3 @@
-// 1. Konfiguracja połączenia
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
@@ -9,96 +8,70 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 2. Użytkownik i Gospodarstwo
-// Jeden użytkownik = Jedno gospodarstwo (w tym modelu MVP)
 model User {
   id               String    @id @default(uuid())
   email            String    @unique
   password         String
-  role             String    @default("USER") // ADMIN lub USER
-  fullName         String?   // Imię i Nazwisko
+  role             String    @default("USER")
+  fullName         String?
   farmName         String?
   farmAddress      String?
   piorinNumber     String?
-  licenseStatus    String    @default("TRIAL") // ACTIVE, EXPIRED, TRIAL
-  licenseExpiresAt DateTime? // Data ważności
+  licenseStatus    String    @default("TRIAL")
+  licenseExpiresAt DateTime?
   createdAt        DateTime  @default(now())
-  
+
+  // RELACJE - BEZ TEGO BUILD SIĘ WYWALI
   fields           Field[]
   warehouseItems   WarehouseItem[]
   treatments       Treatment[]
 }
 
-
-// 3. Pola Uprawne
 model Field {
-  id          String   @id @default(uuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-
-  name        String   // Np. "Działka pod lasem"
-  area        Float    // Powierzchnia w ha
-  cropType    String   // Np. "Pszenica ozima"
-  
-  treatments  Treatment[] // Historia zabiegów na tym polu
+  id         String      @id @default(uuid())
+  userId     String
+  user       User        @relation(fields: [userId], references: [id])
+  name       String
+  area       Float
+  cropType   String
+  treatments Treatment[]
 }
 
-// 4. Magazyn (Środki Ochrony Roślin)
 model WarehouseItem {
-  id              String    @id @default(uuid())
-  userId          String
-  user            User      @relation(fields: [userId], references: [id])
-
-  name            String    // Nazwa środka (np. Mospilan 20 SP)
-  
-  // Ewidencja partii (Ważne dla kontroli)
-  batchNumber     String    // Numer partii
-  expirationDate  DateTime  // Data ważności
-  productionDate  DateTime? // Data produkcji
-
-  // Stan magazynowy
-  quantity        Float     // Ile zostało (np. 5.0)
-  unit            String    // Jednostka (l, kg)
-
-  // Utylizacja (Twoja kluczowa funkcja)
-  isWaste         Boolean   @default(false) // Czy to odpad?
-  disposalDate    DateTime? // Kiedy zutylizowano
-  
-  // Powiązanie z zabiegami
-  treatmentItems  TreatmentItem[]
+  id             String          @id @default(uuid())
+  userId         String
+  user           User            @relation(fields: [userId], references: [id])
+  name           String
+  batchNumber    String?
+  expirationDate DateTime
+  productionDate DateTime?
+  quantity       Float
+  unit           String
+  isWaste        Boolean         @default(false)
+  disposalDate   DateTime?
+  treatmentItems TreatmentItem[]
 }
 
-// 5. Zabiegi (Karta Ewidencji Zabiegów)
 model Treatment {
-  id          String   @id @default(uuid())
+  id          String          @id @default(uuid())
   userId      String
-  user        User     @relation(fields: [userId], references: [id])
-
-  date        DateTime // Data zabiegu
-  crop        String   // Uprawa (np. Pszenica)
-  area        Float    // Obszar opryskany
-  
-  // Warunki pogodowe (Wymagane prawem)
+  user        User            @relation(fields: [userId], references: [id])
+  date        DateTime
+  crop        String
+  area        Float
   temperature Float?
   windSpeed   Float?
-  
-  // Relacje
   fieldId     String?
-  field       Field?   @relation(fields: [fieldId], references: [id])
-  
-  // Czym pryskano (lista środków w mieszaninie)
+  field       Field?          @relation(fields: [fieldId], references: [id])
   items       TreatmentItem[]
 }
 
-// 6. Elementy zabiegu (Ile jakiego środka zużyto)
 model TreatmentItem {
   id              String        @id @default(uuid())
   treatmentId     String
   treatment       Treatment     @relation(fields: [treatmentId], references: [id])
-  
   warehouseItemId String
   warehouseItem   WarehouseItem @relation(fields: [warehouseItemId], references: [id])
-  
-  dosage          Float         // Dawka na ha (np. 0.2)
-  amountUsed      Float         // Łącznie zużyto z magazynu (np. 1.0)
+  dosage          Float
+  amountUsed      Float
 }
