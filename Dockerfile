@@ -55,4 +55,4 @@ ENV HOSTNAME "0.0.0.0"
 # --- AUTOMATYCZNY START ---
 # 1. Wypychamy zmiany do bazy (db push)
 # 2. Startujemy serwer (node server.js)
-CMD ["/bin/sh", "-c", "prisma db push && node server.js"]
+CMD ["node", "server.js"]
