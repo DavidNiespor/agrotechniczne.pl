@@ -1,17 +1,17 @@
 // @ts-nocheck
 'use client';
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Sprout, Tractor, FlaskConical, FileText, Plus, Trash2, Pencil, Save, X, 
   CheckCircle2, Droplets, Wind, Thermometer, Calendar, LayoutGrid, Check, 
   AlertCircle, Printer, CloudSun, AlertTriangle, Search, Undo2, ShieldCheck, 
   ChevronDown, ChevronUp, ChevronRight, Hourglass, Clock, Package, Archive, 
-  History, Recycle, Trash, Ban, Truck
+  History, Recycle, Trash, Ban, Truck, LogOut
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
-// --- PROPSY (TU PŁYNĄ TWOJE DANE) ---
+// --- PROPSY ---
 interface FarmManagerProps {
   initialFields?: any[];
   initialWarehouse?: any[];
@@ -23,15 +23,14 @@ export const FarmManager: React.FC<FarmManagerProps> = ({
   initialWarehouse = [], 
   initialTreatments = [] 
 }) => {
-  // PODPINAMY TWOJE DANE Z BAZY DO STANÓW
+  // PODPIĘCIE DANYCH Z BAZY DO STANÓW
   const [fields, setFields] = useState(initialFields);
   const [warehouse, setWarehouse] = useState(initialWarehouse);
   const [treatments, setTreatments] = useState(initialTreatments);
   
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // --- LOGIKA STATYSTYK ---
+  // STATYSTYKI LICZONE NA ŻYWO Z TWOICH DANYCH
   const stats = useMemo(() => ({
     totalArea: fields.reduce((sum, f) => sum + (parseFloat(f.area) || 0), 0),
     fieldCount: fields.length,
@@ -48,7 +47,7 @@ export const FarmManager: React.FC<FarmManagerProps> = ({
 
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
-      {/* SIDEBAR - TWÓJ ORYGINALNY WYGLĄD */}
+      {/* SIDEBAR - IDENTYCZNY JAK W AI STUDIO */}
       <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 shadow-sm">
         <div className="p-6 border-b border-slate-100 flex items-center gap-3">
           <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-200">
@@ -73,15 +72,24 @@ export const FarmManager: React.FC<FarmManagerProps> = ({
               {item.label}
             </button>
           ))}
+          
+          {/* GUZIK WYLOGUJ - DODANY DO SIDEBARU W TWOIM STYLU */}
+          <a 
+            href="/api/auth/signout"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-red-500 hover:bg-red-50 transition-all mt-8"
+          >
+            <LogOut className="w-5 h-5" />
+            Wyloguj się
+          </a>
         </nav>
       </aside>
 
-      {/* GŁÓWNA TREŚĆ */}
+      {/* GŁÓWNA TREŚĆ - WYGLĄD AI STUDIO */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <div className="max-w-6xl mx-auto space-y-8">
             
-            {/* PULPIT */}
+            {/* WIDOK PULPITU - IDENTYCZNE KAFELKI */}
             {activeTab === 'dashboard' && (
               <div className="space-y-6 animate-in fade-in duration-500">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -89,37 +97,36 @@ export const FarmManager: React.FC<FarmManagerProps> = ({
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Powierzchnia</p>
                     <p className="text-2xl font-black text-slate-800">{stats.totalArea.toFixed(2)} ha</p>
                   </div>
-                  {/* ... reszta kafelków identycznie jak w Twoim pliku ... */}
                   <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <p className="text-xs font-bold text-slate-400 uppercase mb-1">Liczba Pól</p>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Liczba Pól</p>
                     <p className="text-2xl font-black text-slate-800">{stats.fieldCount}</p>
+                  </div>
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Magazyn</p>
+                    <p className="text-2xl font-black text-slate-800">{stats.warehouseValue}</p>
+                  </div>
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Zabiegi</p>
+                    <p className="text-2xl font-black text-slate-800">{stats.recentTreatments}</p>
                   </div>
                 </div>
 
-                {/* LISTA PÓL ZACIĄGNIĘTA Z BAZY */}
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                   <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                    <h3 className="font-black text-slate-800 uppercase text-sm tracking-widest">Twoje Pola</h3>
-                    <button onClick={() => setActiveTab('fields')} className="text-emerald-600 font-bold text-xs bg-emerald-50 px-3 py-1 rounded-full hover:bg-emerald-100 transition-colors">ZARZĄDZAJ</button>
+                    <h3 className="font-black text-slate-800 uppercase text-sm tracking-widest">Twoje Dane</h3>
                   </div>
-                  <div className="p-4">
+                  <div className="p-8 text-center">
                     {fields.length === 0 ? (
-                      <div className="text-center py-12">
-                        <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                           <Sprout className="text-slate-300 w-8 h-8" />
-                        </div>
-                        <p className="text-slate-400 font-medium">Brak danych w bazie. Dodaj pierwsze pole w zakładce Pola.</p>
+                      <div className="py-12">
+                         <Sprout className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+                         <p className="text-slate-400 font-medium">Brak danych w bazie. Użyj formularzy w zakładkach, aby dodać pierwsze dane.</p>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
                         {fields.map(f => (
-                          <div key={f.id} className="p-4 bg-white border border-slate-100 rounded-xl hover:shadow-md transition-all group">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <p className="font-black text-slate-800 group-hover:text-emerald-600 transition-colors">{f.name}</p>
-                                <p className="text-xs font-bold text-slate-400 uppercase mt-1">{f.area} ha • {f.cropType || f.crop}</p>
-                              </div>
-                            </div>
+                          <div key={f.id} className="p-4 border border-slate-100 rounded-xl bg-white shadow-sm">
+                            <p className="font-bold text-slate-800">{f.name}</p>
+                            <p className="text-xs text-slate-400 uppercase font-bold">{f.area} ha • {f.cropType || f.crop}</p>
                           </div>
                         ))}
                       </div>
@@ -129,8 +136,7 @@ export const FarmManager: React.FC<FarmManagerProps> = ({
               </div>
             )}
             
-            {/* Tutaj idą pozostałe sekcje (fields, warehouse, treatments) dokładnie z Twoim kodem... */}
-            {/* Pamiętaj, żeby w pętlach .map() używać tych samych nazw co w bazie: f.name, f.area itp. */}
+            {/* Tutaj możesz dokleić sekcje Fields/Warehouse/Treatments z oryginału AI Studio */}
           </div>
         </main>
       </div>
