@@ -13,8 +13,8 @@ export const FarmManager = ({ session }) => {
   const [activeTab, setActiveTab] = useState('treatment');
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
-      {/* CZARNY PASEK POGODY - GÓRA */}
+    <div className="min-h-screen font-sans text-slate-900">
+      {/* CZARNY PASEK GÓRNY */}
       <div className="bg-slate-900 text-white p-2 px-6 flex justify-between items-center text-[10px] font-bold tracking-widest uppercase">
         <div className="flex gap-6 items-center">
           <span className="text-slate-500">POGODA (LOKALNA)</span>
@@ -26,9 +26,9 @@ export const FarmManager = ({ session }) => {
         <div className="flex items-center gap-4">
           <div className="bg-green-600 px-3 py-1 rounded-full flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-            OKNO POGODOWE OTWARTE
+            SYSTEM AKTYWNY
           </div>
-          {/* GUZIK WYLOGUJ - Dyskretnie na czarnym tle */}
+          {/* PRZYCISK WYLOGUJ - Wkomponowany, nie psuje układu */}
           <button 
             onClick={() => signOut({ callbackUrl: '/login' })}
             className="hover:text-red-400 transition-colors flex items-center gap-1 border-l border-slate-700 pl-4 ml-2"
@@ -42,7 +42,7 @@ export const FarmManager = ({ session }) => {
       <div className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Sprout className="w-8 h-8 text-green-600" />
-          <span className="text-2xl font-black text-slate-800 tracking-tight">
+          <span className="text-2xl font-black text-slate-800 tracking-tight uppercase">
             agrotechniczne<span className="text-green-600">.pl</span>
           </span>
         </div>
@@ -52,7 +52,7 @@ export const FarmManager = ({ session }) => {
         </div>
       </div>
 
-      {/* POZIOMA NAWIGACJA ZAKŁADEK */}
+      {/* TWOJE ZAKŁADKI POZIOME */}
       <div className="bg-white border-b border-slate-200 px-6">
         <nav className="flex gap-8">
           {[
@@ -79,23 +79,12 @@ export const FarmManager = ({ session }) => {
         </nav>
       </div>
 
-      {/* TREŚĆ GŁÓWNA */}
+      {/* CONTENT */}
       <main className="p-8 max-w-6xl mx-auto">
-        <div className="animate-in fade-in duration-500">
-           {/* TWOJE ORYGINALNE KAFELKI PÓL DO WYBORU */}
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[
-                { name: 'Działka pod Lasem', area: '5.4 ha', crop: 'Pszenica ozima' },
-                { name: 'Klin', area: '2.1 ha', crop: 'Rzepak' },
-                { name: 'Za Stodołą', area: '8.5 ha', crop: 'Kukurydza' },
-                { name: 'Łąka', area: '1.2 ha', crop: 'Trawa' }
-              ].map((f, i) => (
-                <div key={i} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-green-500 transition-all cursor-pointer">
-                   <h3 className="font-black text-slate-800 uppercase text-sm tracking-tight">{f.name}</h3>
-                   <p className="text-xs text-slate-500 font-bold">{f.area} • {f.crop}</p>
-                </div>
-              ))}
-           </div>
+        <div className="bg-white p-20 rounded-xl border border-dashed border-slate-200 text-center">
+           <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">
+             Gotowy do pracy. Wybierz opcję z menu powyżej.
+           </p>
         </div>
       </main>
     </div>
