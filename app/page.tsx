@@ -32,7 +32,6 @@ export default async function Home() {
     redirect('/login');
   }
 
-  // POBIERAMY PRAWDZIWE DANE DLA ZALOGOWANEGO UŻYTKOWNIKA
   const [dbFields, dbWarehouse] = await Promise.all([
     prisma.field.findMany({ where: { userId: session.user.id } }),
     prisma.warehouseItem.findMany({ where: { userId: session.user.id } })
