@@ -38,7 +38,7 @@ import {
   Ban,
   Truck
 } from 'lucide-react';
-import { cn } from "@/lib/utils";
+import { cn, formatDate } from '../utils';
 
 // --- TYPY DANYCH ---
 
