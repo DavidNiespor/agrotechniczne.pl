@@ -2,23 +2,24 @@
 FROM node:18-alpine AS deps
 WORKDIR /app
 
-# Kopiujemy pliki definicji pakietów (package-lock.json jest opcjonalny dzięki *)
+# WAŻNA POPRAWKA: Instalacja narzędzi do kompilacji (dla bcrypt/prisma na Alpine)
+RUN apk add --no-cache libc6-compat python3 make g++
+
+# Kopiujemy pliki
 COPY package.json package-lock.json* ./
 
-# ZMIANA: Używamy 'npm install' zamiast 'npm ci', żeby nie wywalało błędu przy braku lockfile'a
+# Instalujemy zależności (teraz zadziała, bo mamy kompilatory)
 RUN npm install
 
 # 2. Budowanie aplikacji
 FROM node:18-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-# Kopiujemy resztę kodu źródłowego
 COPY . .
 
 # Generowanie klienta bazy danych
 RUN npx prisma generate
 
-# Wyłączenie telemetrii
 ENV NEXT_TELEMETRY_DISABLED 1
 
 # Budowanie
@@ -34,7 +35,6 @@ ENV NEXT_TELEMETRY_DISABLED 1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Kopiowanie plików publicznych i zbudowanej aplikacji
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
@@ -43,7 +43,6 @@ USER nextjs
 
 EXPOSE 3000
 ENV PORT 3000
-# Ważne: nasłuchiwanie na wszystkich interfejsach
 ENV HOSTNAME "0.0.0.0"
 
 CMD ["node", "server.js"]
