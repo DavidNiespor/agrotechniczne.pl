@@ -1,51 +1,57 @@
-# 1. Baza: Instalacja zależności
+# ETAP 1: Instalacja zależności
 FROM node:18-alpine AS deps
 WORKDIR /app
 
-# WAŻNA POPRAWKA: Instalacja narzędzi do kompilacji (dla bcrypt/prisma na Alpine)
-# Bez tego npm install zawsze wyrzuci błąd przy bibliotekach C++
-RUN apk add --no-cache libc6-compat python3 make g++
+# 1. Instalacja narzędzi systemowych (OpenSSL jest kluczowy dla Prismy!)
+RUN apk update && apk add --no-cache \
+    libc6-compat \
+    python3 \
+    make \
+    g++ \
+    openssl \
+    openssl-dev
 
-# Kopiujemy pliki definicji pakietów
-COPY package.json package-lock.json* ./
+# 2. Kopiujemy TYLKO package.json (Ignorujemy package-lock.json z Windowsa)
+COPY package.json ./
 
-# Instalujemy zależności
-RUN npm install
+# 3. Instalacja z flagą --legacy-peer-deps (Ignoruje konflikty wersji)
+# To zazwyczaj naprawia błąd "exit code: 1"
+RUN npm install --legacy-peer-deps
 
-# 2. Budowanie aplikacji
+# ETAP 2: Budowanie
 FROM node:18-alpine AS builder
 WORKDIR /app
+
+# Kopiujemy node_modules z poprzedniego etapu
 COPY --from=deps /app/node_modules ./node_modules
-# Kopiujemy resztę kodu źródłowego
 COPY . .
 
-# Generowanie klienta bazy danych (Prisma)
+# 4. Generowanie klienta bazy (z wymuszeniem OpenSSL)
 RUN npx prisma generate
 
-# Wyłączenie telemetrii Next.js
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Budowanie aplikacji
+# 5. Budowanie aplikacji
 RUN npm run build
 
-# 3. Obraz Produkcyjny (Uruchamianie)
+# ETAP 3: Uruchamianie
 FROM node:18-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
+# Dodajemy usera
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Kopiowanie plików publicznych
+# Kopiujemy pliki publiczne
 COPY --from=builder /app/public ./public
 
-# Kopiowanie zbudowanej aplikacji (Standalone)
+# Kopiujemy aplikację
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Przełączenie na bezpiecznego użytkownika
 USER nextjs
 
 EXPOSE 3000
