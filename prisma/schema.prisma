@@ -1,8 +1,7 @@
 // 1. Konfiguracja połączenia
 generator client {
   provider      = "prisma-client-js"
-  // Ważne: to pozwala działać Prismie zarówno na Twoim PC, jak i w Dockerze (Linux Alpine)
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
 }
 
 datasource db {
