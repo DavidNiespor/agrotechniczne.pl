@@ -1,18 +1,17 @@
-# 1. Baza: Używamy Debian Slim zamiast Alpine (lepsza kompatybilność)
+# 1. Baza: Używamy Debian Slim zamiast Alpine
 FROM node:18-slim AS base
 
 # 2. Instalacja zależności
 FROM base AS deps
 WORKDIR /app
 
-# Instalujemy OpenSSL (wymagane przez Prisma) w środowisku Debian
+# Instalujemy OpenSSL (wymagane przez Prisma)
 RUN apt-get update -y && apt-get install -y openssl
 
-# Kopiujemy tylko plik z zależnościami
+# Kopiujemy pakiet
 COPY package.json ./
 
-# Instalacja z flagą legacy-peer-deps (ignoruje konflikty wersji)
-# Debian (slim) ma lepszą obsługę prekompilowanych paczek, więc tu rzadziej wywala błąd
+# Instalacja (ignorujemy konflikty wersji)
 RUN npm install --legacy-peer-deps
 
 # 3. Budowanie
@@ -22,7 +21,6 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Generowanie klienta bazy danych
-# Jeśli nie masz folderu prisma, ta linia może wyrzucić błąd - wtedy ją usuń
 RUN npx prisma generate
 
 ENV NEXT_TELEMETRY_DISABLED 1
@@ -37,7 +35,6 @@ WORKDIR /app
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Dodajemy użytkownika (w Debianie robi się to minimalnie inaczej)
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
