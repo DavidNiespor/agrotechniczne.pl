@@ -20,7 +20,7 @@ RUN npx prisma generate
 ENV NEXT_TELEMETRY_DISABLED 1
 
 # Budowanie aplikacji
-RUN npm run build
+#RUN npm run build
 
 # 4. Uruchamianie (PRODUKCJA)
 FROM base AS runner
