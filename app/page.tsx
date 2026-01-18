@@ -11,5 +11,7 @@ export default async function Home() {
     redirect('/login');
   }
 
+  // Ładujemy FarmManager bezpośrednio. 
+  // Przekazujemy sesję, żeby można było wyświetlić dane użytkownika.
   return <FarmManager session={session} />;
 }

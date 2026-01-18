@@ -4,141 +4,148 @@
 import React, { useState } from 'react';
 import { signOut } from "next-auth/react";
 import { 
-  Sprout, Tractor, FlaskConical, FileText, Plus, Trash2, Pencil, Save, X, 
-  CheckCircle2, Droplets, Wind, Thermometer, Calendar, LayoutGrid, Check, 
-  AlertCircle, Printer, LogOut
+  Sprout, Tractor, FlaskConical, FileText, LayoutGrid, Droplets, 
+  Thermometer, Wind, LogOut, CheckCircle2 
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 export const FarmManager = ({ session }) => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('treatment');
 
-  // --- PRZYKŁADOWE DANE (MOCKI) ---
-  const [fields] = useState([
-    { id: '1', name: 'Działka pod Lasem', area: 5.4, crop: 'Pszenica ozima' },
-    { id: '2', name: 'Klin', area: 2.1, crop: 'Rzepak' },
-    { id: '3', name: 'Za Stodołą', area: 3.8, crop: 'Kukurydza' }
-  ]);
-
-  const [warehouse] = useState([
-    { id: '1', name: 'Atlantis 12 OD', quantity: 5, unit: 'l' },
-    { id: '2', name: 'Puma Universal', quantity: 10, unit: 'l' }
-  ]);
-
-  const navItems = [
-    { id: 'dashboard', label: 'Pulpit', icon: LayoutGrid },
-    { id: 'fields', label: 'Pola', icon: Sprout },
-    { id: 'warehouse', label: 'Magazyn', icon: FlaskConical },
-    { id: 'treatments', label: 'Zabiegi', icon: Tractor },
-    { id: 'reports', label: 'Raporty', icon: FileText },
+  // TWOJE ORYGINALNE MOCKI
+  const fields = [
+    { id: '1', name: 'Działka pod Lasem', crop: 'Pszenica ozima', area: 5.4 },
+    { id: '2', name: 'Klin', crop: 'Rzepak', area: 2.1 },
+    { id: '3', name: 'Za Stodołą', crop: 'Kukurydza', area: 8.5 },
   ];
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
-      {/* --- SIDEBAR (PASEK BOCZNY) --- */}
-      <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 h-screen sticky top-0">
-        <div className="p-6 border-b border-slate-100 flex items-center gap-3">
-          <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
+      
+      {/* --- CZARNY PASEK GÓRNY (POGODA I LOGOWANIE) --- */}
+      <div className="bg-slate-900 text-white p-2 px-6 flex justify-between items-center text-[10px] font-bold tracking-widest uppercase">
+        <div className="flex gap-6 items-center">
+          <span className="text-slate-500 italic font-black">PARAMETRY POGODOWE:</span>
+          <span className="flex items-center gap-1"><Thermometer className="w-3 h-3 text-red-400"/> 18°C</span>
+          <span className="flex items-center gap-1"><Wind className="w-3 h-3 text-blue-400"/> 2 m/s</span>
+          <span className="flex items-center gap-1"><Droplets className="w-3 h-3 text-blue-300"/> 65%</span>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="bg-emerald-600 px-3 py-1 rounded-full flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+            LIVE SYSTEM
+          </div>
+          {/* PRZYCISK WYLOGUJ - Wkomponowany w czarny pasek */}
+          <button 
+            onClick={() => signOut({ callbackUrl: '/login' })}
+            className="text-slate-400 hover:text-red-400 transition-colors flex items-center gap-1 border-l border-slate-700 pl-4"
+          >
+            <LogOut className="w-3 h-3" /> WYLOGUJ
+          </button>
+        </div>
+      </div>
+
+      {/* --- SEKCJA LOGO I STATYSTYK --- */}
+      <div className="bg-white border-b border-slate-200 px-6 py-5 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-100">
             <Sprout className="text-white w-6 h-6" />
           </div>
-          <span className="text-xl font-black text-slate-800 tracking-tight">AGRO<span className="text-emerald-600">PRO</span></span>
+          <span className="text-2xl font-black text-slate-800 tracking-tighter uppercase">
+            agrotechniczne<span className="text-emerald-600">.pl</span>
+          </span>
         </div>
         
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {navItems.map((item) => (
+        <div className="flex items-center gap-6 text-[11px] font-black text-slate-400 uppercase tracking-widest">
+            <span className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
+              <FlaskConical className="w-4 h-4 text-blue-500"/> Magazyn: 4 środki
+            </span>
+            <span className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
+              <LayoutGrid className="w-4 h-4 text-emerald-500"/> Pola: {fields.length}
+            </span>
+        </div>
+      </div>
+
+      {/* --- POZIOMA NAWIGACJA (TABS) --- */}
+      <div className="bg-white border-b border-slate-200 px-6">
+        <nav className="flex gap-1">
+          {[
+            { id: 'treatment', label: '1. Nowy Zabieg', icon: Droplets },
+            { id: 'fields', label: '2. Pola', icon: LayoutGrid },
+            { id: 'warehouse', label: '3. Magazyn', icon: FlaskConical },
+            { id: 'machines', label: '4. Maszyny', icon: Tractor },
+            { id: 'reports', label: '5. Raporty', icon: FileText }
+          ].map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={cn(
-                "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200",
+                "flex items-center gap-3 px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] border-b-2 transition-all",
                 activeTab === item.id 
-                  ? "bg-emerald-50 text-emerald-700 shadow-sm" 
-                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                  ? "border-emerald-600 text-emerald-700 bg-emerald-50/30" 
+                  : "border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50/50"
               )}
             >
-              <item.icon className={cn("w-5 h-5", activeTab === item.id ? "text-emerald-600" : "text-slate-400")} />
+              <item.icon className={cn("w-4 h-4", activeTab === item.id ? "text-emerald-600" : "text-slate-400")} />
               {item.label}
             </button>
           ))}
         </nav>
-
-        {/* DOLNA CZĘŚĆ SIDEBARA (PROFIL + WYLOGUJ) */}
-        <div className="p-4 border-t border-slate-100">
-          <div className="flex items-center gap-3 px-2 mb-4">
-            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xs uppercase">
-              {session?.user?.email?.[0]}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-slate-900 truncate">{session?.user?.email}</p>
-              <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">Plan PRO</p>
-            </div>
-          </div>
-          <button 
-            onClick={() => signOut({ callbackUrl: '/login' })}
-            className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            WYLOGUJ SIĘ
-          </button>
-        </div>
-      </aside>
+      </div>
 
       {/* --- TREŚĆ GŁÓWNA --- */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Pasek Pogody */}
-        <header className="bg-slate-900 text-white p-2 px-6 flex justify-between items-center text-[10px] font-bold tracking-widest uppercase">
-          <div className="flex gap-6 items-center">
-            <span className="text-slate-500">PARAMETRY</span>
-            <span className="flex items-center gap-1"><Thermometer className="w-3 h-3 text-red-400"/> 18°C</span>
-            <span className="flex items-center gap-1"><Wind className="w-3 h-3 text-blue-400"/> 2 m/s</span>
-            <span className="flex items-center gap-1"><Droplets className="w-3 h-3 text-blue-300"/> 65%</span>
-          </div>
-          <div className="bg-emerald-600 px-3 py-1 rounded-full flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-            SYSTEM AKTYWNY
-          </div>
-        </header>
+      <main className="p-8 max-w-7xl mx-auto">
+        {activeTab === 'treatment' && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+            <div className="flex justify-between items-end mb-4">
+               <div>
+                  <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest">Krok 1</h2>
+                  <p className="text-2xl font-black text-slate-800 tracking-tighter">Wybierz pola do zabiegu</p>
+               </div>
+               <div className="text-right">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Suma obszaru</p>
+                  <p className="text-3xl font-black text-emerald-600 tracking-tighter">0.00 ha</p>
+               </div>
+            </div>
 
-        <main className="flex-1 overflow-y-auto p-8">
-           <div className="max-w-5xl mx-auto space-y-8">
-              <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">
-                {navItems.find(i => i.id === activeTab)?.label}
-              </h1>
-
-              {/* STATYSTYKI */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {[
-                  { label: 'Obszar', val: '11.3 ha', color: 'emerald' },
-                  { label: 'Pola', val: fields.length, color: 'blue' },
-                  { label: 'Magazyn', val: warehouse.length, color: 'amber' },
-                  { label: 'Zabiegi', val: '12', color: 'slate' }
-                ].map((s, i) => (
-                  <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{s.label}</p>
-                    <p className="text-2xl font-black text-slate-800">{s.val}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* DASHBOARD CONTENT */}
-              {activeTab === 'dashboard' && (
-                <div className="grid grid-cols-1 gap-6">
-                  <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-                    <h3 className="font-black text-slate-800 mb-4">Ostatnie Pola</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {fields.map(f => (
-                        <div key={f.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                          <p className="font-bold text-slate-800">{f.name}</p>
-                          <p className="text-xs text-slate-500 font-bold uppercase">{f.area} ha • {f.crop}</p>
-                        </div>
-                      ))}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {fields.map((f) => (
+                <div key={f.id} className="bg-white p-6 rounded-2xl border-2 border-slate-100 shadow-sm hover:border-emerald-500 transition-all cursor-pointer group">
+                  <div className="flex justify-between items-start">
+                    <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center group-hover:bg-emerald-50 transition-colors">
+                       <Sprout className="w-5 h-5 text-slate-400 group-hover:text-emerald-600" />
                     </div>
+                    <span className="text-[10px] font-black text-slate-400 bg-slate-50 px-2 py-1 rounded uppercase tracking-widest group-hover:bg-emerald-100 group-hover:text-emerald-700 transition-colors">
+                      {f.area} ha
+                    </span>
                   </div>
+                  <h3 className="font-black text-slate-800 mt-4 text-lg tracking-tight leading-tight">{f.name}</h3>
+                  <p className="text-xs font-bold text-slate-400 uppercase mt-1 tracking-wider">{f.crop}</p>
                 </div>
-              )}
-           </div>
-        </main>
-      </div>
+              ))}
+            </div>
+
+            {/* Formularz pomocniczy */}
+            <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm mt-8">
+               <div className="flex items-center gap-3 mb-6">
+                  <div className="w-2 h-8 bg-emerald-600 rounded-full" />
+                  <p className="text-sm font-black text-slate-800 uppercase tracking-widest">Dane podstawowe</p>
+               </div>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Data Zabiegu</label>
+                     <input type="date" defaultValue="2026-01-18" className="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-black text-slate-800 outline-none focus:border-emerald-500 transition-colors" />
+                  </div>
+                  <div className="space-y-2">
+                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Gospodarstwo</label>
+                     <input type="text" value="Twoje Gospodarstwo" readOnly className="w-full p-4 bg-slate-100 border-2 border-slate-100 rounded-2xl font-black text-slate-400 cursor-not-allowed uppercase tracking-wider" />
+                  </div>
+               </div>
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 };
