@@ -11,6 +11,6 @@ export default async function Home() {
     redirect('/login');
   }
 
-  // Renderujemy FarmManager z Twoim oryginalnym układem górnym
+  // Ładujemy czysty FarmManager, przekazując tylko sesję do ewentualnego wyświetlenia maila
   return <FarmManager session={session} />;
 }
