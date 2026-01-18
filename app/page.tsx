@@ -14,6 +14,8 @@ export default async function Home() {
   return <FarmManager />;
 }
 */
+
+// app/page.tsx
 // @ts-nocheck
 import { FarmManager } from '../components/FarmManager';
 import { getServerSession } from "next-auth";
@@ -30,22 +32,17 @@ export default async function Home() {
     redirect('/login');
   }
 
-  // Pobieramy dane z Twojej bazy danych
-  const [fields, warehouse] = await Promise.all([
-    prisma.field.findMany({
-      where: { userId: session.user.id }
-    }),
-    prisma.warehouseItem.findMany({
-      where: { userId: session.user.id }
-    })
+  // POBIERAMY PRAWDZIWE DANE DLA ZALOGOWANEGO UŻYTKOWNIKA
+  const [dbFields, dbWarehouse] = await Promise.all([
+    prisma.field.findMany({ where: { userId: session.user.id } }),
+    prisma.warehouseItem.findMany({ where: { userId: session.user.id } })
   ]);
 
-  // Przekazujemy prawdziwe dane do komponentu
   return (
     <FarmManager 
       session={session} 
-      initialFields={fields} 
-      initialWarehouse={warehouse} 
+      initialFields={dbFields} 
+      initialWarehouse={dbWarehouse} 
     />
   );
 }
