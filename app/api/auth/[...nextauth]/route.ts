@@ -26,28 +26,51 @@ const handler = NextAuth({
           throw new Error("Nieprawidłowy email lub hasło");
         }
 
-        // PORÓWNANIE HASŁA (To musi pasować do rejestracji)
         const isValid = await bcrypt.compare(credentials.password, user.password);
 
         if (!isValid) {
           throw new Error("Nieprawidłowe hasło");
         }
 
+        // Zwracamy obiekt użytkownika (to co tu zwrócisz, trafi do tokena)
         return {
           id: user.id,
           email: user.email,
-          name: user.fullName || user.email, // Ważne dla wyświetlania w UI
+          fullName: user.fullName,     // <--- WAŻNE: Przekazujemy imię
+          farmName: user.farmName,     // <--- WAŻNE: Przekazujemy nazwę farmy
           role: user.role,
         };
       }
     })
   ],
+  callbacks: {
+    // 1. Przepisujemy dane z bazy do tokena JWT
+    async jwt({ token, user }: any) {
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+        token.fullName = user.fullName;
+        token.farmName = user.farmName;
+      }
+      return token;
+    },
+    // 2. Przepisujemy dane z tokena do sesji (którą widzi React)
+    async session({ session, token }: any) {
+      if (session.user) {
+        session.user.id = token.id;
+        session.user.role = token.role;
+        session.user.fullName = token.fullName;
+        session.user.farmName = token.farmName;
+      }
+      return session;
+    }
+  },
   session: {
     strategy: "jwt",
   },
-  secret: process.env.NEXTAUTH_SECRET, // Upewnij się, że masz to w Env w Portainerze!
+  secret: process.env.NEXTAUTH_SECRET,
   pages: {
-    signIn: "/login", // Jeśli masz customową stronę logowania
+    signIn: "/login",
   }
 });
 
