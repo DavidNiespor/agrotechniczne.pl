@@ -1,51 +1,23 @@
 // @ts-nocheck
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState } from 'react';
 import { signOut } from "next-auth/react";
-import { 
-  Sprout, Tractor, FlaskConical, FileText, Plus, Trash2, Pencil, Save, X, 
-  CheckCircle2, Droplets, Wind, Thermometer, Calendar, LayoutGrid, Check, 
-  AlertCircle, Printer, CloudSun, AlertTriangle, Search, Undo2, ShieldCheck, 
-  ChevronDown, ChevronUp, ChevronRight, Hourglass, Clock, Package, Archive, 
-  History, Recycle, Trash, Ban, Truck, LogOut
-} from 'lucide-react';
+import { Sprout, Plus, X, Droplets, Wind, Thermometer, LayoutGrid, LogOut, Pencil, Trash2 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
-// --- TYPY DANYCH (ZACHOWANE) ---
-interface Field { id: string; name: string; parcelNumber: string; area: number; crop: string; }
-type ChemType = 'Herbicyd' | 'Fungicyd' | 'Insektycyd' | 'Regulator' | 'Nawoz' | 'Adiuwant';
-interface Chemical { 
-  id: string; name: string; type: ChemType; activeSubstance: string; crops: string; 
-  quantity: number; unit: string; recommendedDose: string; batchNumber: string; 
-  productionDate: string; expiryDate: string; disposalDate?: string; isWastePending?: boolean;
-}
-
-export const FarmManager = ({ session, initialFields = [], initialWarehouse = [] }) => {
-  // --- STATE ---
-  const [activeTab, setActiveTab] = useState('treatment');
+export const FarmManager = ({ initialFields = [], initialWarehouse = [] }) => {
+  const [activeTab, setActiveTab] = useState('fields');
   const [fields, setFields] = useState(initialFields.map(f => ({
-    id: f.id, name: f.name, parcelNumber: f.parcelNumber || '', area: f.area, crop: f.cropType
+    id: f.id, name: f.name, parcel: f.parcelNumber, area: f.area, crop: f.cropType
   })));
-  const [warehouse, setWarehouse] = useState(initialWarehouse.map(w => ({
-    ...w,
-    productionDate: w.productionDate ? new Date(w.productionDate).toISOString().split('T')[0] : '',
-    expiryDate: w.expirationDate ? new Date(w.expirationDate).toISOString().split('T')[0] : ''
-  })));
-  const [modalOpen, setModalOpen] = useState(null);
-  const [expandedGroups, setExpandedGroups] = useState([]);
+  const [modalOpen, setModalOpen] = useState(false);
 
-  // --- LOGIKA ZAPISU DO API ---
   const handleSaveField = async (e) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    const data = {
-      name: fd.get('name'),
-      parcel: fd.get('parcel'),
-      area: fd.get('area'),
-      crop: fd.get('crop')
-    };
-
+    const data = { name: fd.get('name'), parcel: fd.get('parcel'), area: fd.get('area'), crop: fd.get('crop') };
+    
     const res = await fetch('/api/fields', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -54,161 +26,71 @@ export const FarmManager = ({ session, initialFields = [], initialWarehouse = []
 
     if (res.ok) {
       const saved = await res.json();
-      setFields([...fields, { 
-        id: saved.id, name: saved.name, area: saved.area, crop: saved.cropType, parcelNumber: saved.parcelNumber || data.parcel 
-      }]);
-      setModalOpen(null);
+      setFields([...fields, { id: saved.id, name: saved.name, area: saved.area, crop: saved.cropType, parcel: saved.parcelNumber }]);
+      setModalOpen(false);
     }
   };
 
-  const toggleGroup = (name) => setExpandedGroups(p => p.includes(name) ? p.filter(n => n !== name) : [...p, name]);
-
-  const groupedActiveItems = useMemo(() => {
-    const active = warehouse.filter(i => i.quantity > 0);
-    const groups = {};
-    active.forEach(item => {
-      if (!groups[item.name]) groups[item.name] = { meta: item, batches: [], totalQty: 0 };
-      groups[item.name].batches.push(item);
-      groups[item.name].totalQty += item.quantity;
-    });
-    return Object.values(groups);
-  }, [warehouse]);
   return (
-    <div className="bg-slate-100 min-h-screen pb-20 font-sans text-slate-900">
-      
-      {/* 1. CZARNY PASEK POGODY */}
-      <div className="bg-[#0f172a] text-white p-2 px-6 flex justify-between items-center text-[10px] font-bold tracking-widest uppercase">
+    <div className="bg-[#f1f5f9] min-h-screen pb-20 font-sans text-slate-900">
+      {/* BLACK WEATHER BAR */}
+      <div className="bg-[#0f172a] text-white p-2 px-6 flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
         <div className="flex gap-6 items-center">
-          <span className="text-slate-500 font-black italic tracking-tighter">agrotechniczne.pl</span>
+          <span className="text-slate-500 italic">agrotechniczne.pl</span>
           <span className="flex items-center gap-1"><Thermometer className="w-3 h-3 text-red-400"/> 18°C</span>
           <span className="flex items-center gap-1"><Wind className="w-3 h-3 text-blue-400"/> 2 m/s</span>
-          <span className="flex items-center gap-1"><Droplets className="w-3 h-3 text-blue-300"/> 65%</span>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="bg-green-600 px-3 py-1 rounded-full flex items-center gap-2 font-black">
-            <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> LIVE SYSTEM
-          </div>
-          <button onClick={() => signOut({ callbackUrl: '/login' })} className="hover:text-red-400 transition-colors flex items-center gap-1 border-l border-slate-700 pl-4 font-black">
-            <LogOut className="w-3 h-3" /> WYLOGUJ
-          </button>
-        </div>
+        <button onClick={() => signOut({ callbackUrl: '/login' })} className="flex items-center gap-1 hover:text-red-400 transition-colors">
+          <LogOut className="w-3 h-3" /> WYLOGUJ
+        </button>
       </div>
 
-      {/* 2. LOGO I STATYSTYKI */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      {/* WHITE HEADER */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-sm px-6 py-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2 uppercase italic">
             <Sprout className="w-8 h-8 text-green-600"/> agrotechniczne<span className="text-green-600">.pl</span>
           </h1>
-          <div className="hidden md:flex items-center gap-6 text-[11px] font-black text-slate-400 uppercase tracking-widest">
-            <span className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100 font-bold text-slate-900">
-               MAGAZYN: {warehouse.length}
-            </span>
-            <span className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100 font-bold text-slate-900">
-               POLA: {fields.length}
-            </span>
-          </div>
-        </div>
-        
-        {/* 3. NAWIGACJA ZAKŁADEK */}
-        <div className="max-w-7xl mx-auto px-6 overflow-x-auto hide-scrollbar">
-          <nav className="flex gap-1 min-w-max">
-            {[
-              { id: 'treatment', label: '1. Nowy Zabieg', icon: Droplets },
-              { id: 'fields', label: '2. Pola', icon: LayoutGrid },
-              { id: 'warehouse', label: '3. Magazyn', icon: FlaskConical },
-              { id: 'machines', label: '4. Maszyny', icon: Tractor },
-              { id: 'reports', label: '5. Raporty', icon: FileText }
-            ].map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={cn(
-                  "flex items-center gap-3 px-8 py-5 text-[11px] font-black uppercase tracking-[0.2em] border-b-2 transition-all",
-                  activeTab === item.id 
-                    ? "border-green-600 text-green-700 bg-green-50/50" 
-                    : "border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50"
-                )}
-              >
-                <item.icon className={cn("w-4 h-4", activeTab === item.id ? "text-green-600" : "text-slate-400")} />
-                {item.label}
-              </button>
-            ))}
+          <nav className="flex gap-8">
+            <button onClick={() => setActiveTab('fields')} className={cn("py-2 text-[11px] font-black uppercase tracking-widest border-b-2 transition-all", activeTab === 'fields' ? "border-green-600 text-green-700" : "border-transparent text-slate-400")}>2. Pola</button>
+            <button onClick={() => setActiveTab('warehouse')} className={cn("py-2 text-[11px] font-black uppercase tracking-widest border-b-2 transition-all", activeTab === 'warehouse' ? "border-green-600 text-green-700" : "border-transparent text-slate-400")}>3. Magazyn</button>
           </nav>
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto p-8 animate-in fade-in duration-500">
-        
-        {/* ZAKŁADKA POLA */}
+      {/* MAIN CONTENT */}
+      <main className="max-w-7xl mx-auto p-8 animate-in fade-in">
         {activeTab === 'fields' && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter">Twoje Pola</h2>
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Ewidencja Gruntów Rolnych</p>
-              </div>
-              <button onClick={() => setModalOpen('field')} className="bg-green-600 hover:bg-green-700 text-white font-black px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg shadow-green-200 transition-all uppercase text-xs tracking-widest">
+              <h2 className="text-2xl font-black uppercase tracking-tighter text-slate-800">Twoje Pola</h2>
+              <button onClick={() => setModalOpen(true)} className="bg-green-600 hover:bg-green-700 text-white font-black px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg shadow-green-200 uppercase text-xs tracking-widest transition-all">
                 <Plus className="w-5 h-5" /> DODAJ POLE
               </button>
             </div>
-            
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              {fields.map(field => (
-                <div key={field.id} className="bg-white rounded-[24px] border border-gray-200 p-6 shadow-sm hover:shadow-md transition-all group">
-                   <div className="flex justify-between items-start">
-                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{field.parcelNumber}</div>
-                      <div className="text-right font-black text-2xl text-slate-800">{field.area} ha</div>
-                   </div>
-                   <h3 className="text-lg font-bold text-slate-900 mt-1">{field.name}</h3>
+              {fields.map(f => (
+                <div key={f.id} className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-all">
+                   <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{f.parcel}</div>
+                   <div className="text-3xl font-black text-slate-800">{f.area} ha</div>
+                   <h3 className="font-bold text-lg text-slate-900 mt-1">{f.name}</h3>
                    <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
-                      <span className="px-3 py-1 rounded-full bg-green-100 text-green-800 font-black text-[10px] uppercase tracking-widest">{field.crop}</span>
-                      <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-all"><Pencil className="w-4 h-4"/></button>
+                      <span className="px-3 py-1 rounded-full bg-green-100 text-green-800 font-black text-[10px] uppercase">{f.crop}</span>
+                      <button className="text-blue-600 hover:bg-blue-50 p-2 rounded-xl"><Pencil size={16}/></button>
                    </div>
                 </div>
               ))}
             </div>
           </div>
         )}
-
-        {/* ZAKŁADKA MAGAZYN */}
-        {activeTab === 'warehouse' && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter">Magazyn Środków</h2>
-              <button onClick={() => setModalOpen('chemical')} className="bg-blue-600 hover:bg-blue-700 text-white font-black px-6 py-3 rounded-xl flex items-center gap-2 uppercase text-xs tracking-widest transition-all">
-                <Plus className="w-5 h-5" /> DODAJ ŚRODEK
-              </button>
-            </div>
-            <div className="bg-white rounded-[32px] border border-slate-200 overflow-hidden shadow-sm">
-               <table className="w-full text-left">
-                  <thead className="bg-slate-50 border-b border-slate-200 text-[10px] font-black uppercase text-slate-400 tracking-widest">
-                    <tr><th className="p-4 w-12"></th><th className="p-4">Środek</th><th className="p-4">Ilość</th><th className="p-4 text-right">Akcje</th></tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 font-bold text-sm">
-                    {groupedActiveItems.map(group => (
-                      <React.Fragment key={group.meta.name}>
-                        <tr onClick={() => toggleGroup(group.meta.name)} className="hover:bg-slate-50 cursor-pointer">
-                          <td className="p-4"><ChevronRight className={cn("w-5 h-5 text-slate-400 transition-transform", expandedGroups.includes(group.meta.name) && "rotate-90")}/></td>
-                          <td className="p-4">{group.meta.name}</td>
-                          <td className="p-4 text-blue-600 font-black text-lg">{group.totalQty} {group.meta.unit}</td>
-                          <td className="p-4 text-right"><Trash2 className="w-4 h-4 text-slate-300 hover:text-red-500 inline cursor-pointer transition-colors"/></td>
-                        </tr>
-                      </React.Fragment>
-                    ))}
-                  </tbody>
-               </table>
-            </div>
-          </div>
-        )}
       </main>
 
-      {/* MODALE */}
-      {modalOpen === 'field' && (
+      {/* MODAL */}
+      {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
            <div className="bg-white rounded-[40px] p-10 w-full max-w-md shadow-2xl relative animate-in zoom-in-95">
-              <button onClick={() => setModalOpen(null)} className="absolute top-8 right-8 p-1 hover:bg-gray-100 rounded-full text-slate-400"><X className="w-6 h-6"/></button>
-              <h3 className="text-2xl font-black text-slate-800 uppercase mb-8 tracking-tighter text-center">Dodaj Nowe Pole</h3>
+              <button onClick={() => setModalOpen(false)} className="absolute top-8 right-8 text-slate-400 p-1 hover:bg-slate-50 rounded-full"><X /></button>
+              <h3 className="text-2xl font-black text-slate-800 uppercase mb-8 text-center tracking-tighter">Nowe Pole</h3>
               <form onSubmit={handleSaveField} className="space-y-4">
                  <input name="name" placeholder="Nazwa Pola" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold outline-none focus:bg-white focus:border-green-500 transition-all" required />
                  <div className="grid grid-cols-2 gap-4">
@@ -221,11 +103,6 @@ export const FarmManager = ({ session, initialFields = [], initialWarehouse = []
            </div>
         </div>
       )}
-
-      <style jsx global>{`
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      `}</style>
     </div>
   );
 };
