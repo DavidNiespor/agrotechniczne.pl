@@ -6,7 +6,8 @@ const bcrypt = require("bcryptjs");
 
 const prisma = new PrismaClient();
 
-const handler = NextAuth({
+// EKSPORTUJEMY TO OSOBNO - TO JEST KLUCZ!
+export const authOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -23,20 +24,26 @@ const handler = NextAuth({
       }
     })
   ],
-  // TO PRZYWRACA TWÓJ WYGLĄD LOGOWANIA
-  pages: {
-    signIn: '/login', 
-  },
+  pages: { signIn: '/login' },
   callbacks: {
     async jwt({ token, user }) {
-      if (user) { token.id = user.id; token.farmName = user.farmName; }
+      if (user) { 
+        token.id = user.id; 
+        token.farmName = user.farmName; 
+      }
       return token;
     },
     async session({ session, token }) {
-      if (session.user) { session.user.id = token.id; session.user.farmName = token.farmName; }
+      if (session.user) { 
+        session.user.id = token.id; 
+        session.user.farmName = token.farmName; 
+      }
       return session;
     }
-  }
-});
+  },
+  session: { strategy: "jwt" },
+  secret: process.env.NEXTAUTH_SECRET,
+};
 
+const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
