@@ -1,21 +1,3 @@
-/*
-import { FarmManager } from '../components/FarmManager';
-import { getServerSession } from "next-auth";
-import { authOptions } from "./api/auth/[...nextauth]/route";
-import { redirect } from "next/navigation";
-
-export default async function Home() {
-  const session = await getServerSession(authOptions);
-
-  if (!session) {
-    redirect('/login');
-  }
-
-  return <FarmManager />;
-}
-*/
-
-// app/page.tsx
 // @ts-nocheck
 import { FarmManager } from '../components/FarmManager';
 import { getServerSession } from "next-auth";
@@ -23,25 +5,18 @@ import { authOptions } from "./api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import { PrismaClient } from "@prisma/client";
 
+export const dynamic = 'force-dynamic'; // <--- TO NAPRAWIA BUILD W DOCKERZE
+
 const prisma = new PrismaClient();
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
-
-  if (!session) {
-    redirect('/login');
-  }
+  if (!session) redirect('/login');
 
   const [dbFields, dbWarehouse] = await Promise.all([
     prisma.field.findMany({ where: { userId: session.user.id } }),
     prisma.warehouseItem.findMany({ where: { userId: session.user.id } })
   ]);
 
-  return (
-    <FarmManager 
-      session={session} 
-      initialFields={dbFields} 
-      initialWarehouse={dbWarehouse} 
-    />
-  );
+  return <FarmManager session={session} initialFields={dbFields} initialWarehouse={dbWarehouse} />;
 }
