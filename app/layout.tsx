@@ -17,7 +17,7 @@ export default function RootLayout({
     <html lang="pl">
       <head>
         {/* Użycie CDN dla Tailwind aby zachować zgodność z oryginalnym index.html */}
-        <script src="https://cdn.tailwindcss.com"></script>
+        
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
         <script dangerouslySetInnerHTML={{__html: `
           tailwind.config = {
