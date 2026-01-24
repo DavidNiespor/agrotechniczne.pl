@@ -6,7 +6,7 @@ import { signOut } from "next-auth/react";
 import { Sprout, Plus, X, Droplets, Wind, Thermometer, LayoutGrid, LogOut } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
-export const FarmManager = ({ session, initialFields = [] }) => {
+export const FarmManager = ({ initialFields = [] }) => {
   const [activeTab, setActiveTab] = useState('fields');
   const [fields, setFields] = useState(initialFields);
   const [modalOpen, setModalOpen] = useState(false);
@@ -33,21 +33,23 @@ export const FarmManager = ({ session, initialFields = [] }) => {
       setFields(prev => [...prev, result]);
       setModalOpen(false);
     } else {
-      // Tu obsłużymy ten błąd "Brak autoryzacji" ze screena
-      alert("Błąd serwera: " + result.error);
+      // Obsługa błędu ze screena
+      alert("Błąd: " + result.error);
       if (res.status === 401) signOut({ callbackUrl: '/login' });
     }
   };
 
   return (
     <div className="bg-slate-50 min-h-screen font-sans text-slate-900 pb-20">
-      {/* TWOJA GÓRA (CZARNY PASEK) */}
+      {/* TWOJA GÓRA */}
       <div className="bg-slate-900 text-white p-2 px-6 flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
         <div className="flex gap-4">
           <span>agrotechniczne.pl</span>
           <span className="flex items-center gap-1"><Thermometer size={12}/> 18°C</span>
         </div>
-        <button onClick={() => signOut()} className="flex items-center gap-1 hover:text-red-400 font-black"><LogOut size={12}/> WYLOGUJ</button>
+        <button onClick={() => signOut()} className="flex items-center gap-1 font-black">
+          <LogOut size={12}/> WYLOGUJ
+        </button>
       </div>
 
       {/* HEADER (BIAŁY) */}
@@ -66,7 +68,7 @@ export const FarmManager = ({ session, initialFields = [] }) => {
 
       <main className="max-w-7xl mx-auto p-8">
         <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-black uppercase text-slate-800">Twoje Pola</h2>
+          <h2 className="text-2xl font-black uppercase text-slate-800 tracking-tighter">Twoje Pola</h2>
           <button onClick={() => setModalOpen(true)} className="bg-green-600 text-white font-black px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg uppercase text-xs">
             <Plus size={18} /> DODAJ POLE
           </button>
@@ -84,12 +86,12 @@ export const FarmManager = ({ session, initialFields = [] }) => {
         </div>
       </main>
 
-      {/* MODAL (TWOJA ORYGINALNA FORMA) */}
+      {/* MODAL (TWOJA FORMA) */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
            <div className="bg-white rounded-[40px] p-10 w-full max-w-md shadow-2xl relative">
               <button onClick={() => setModalOpen(false)} className="absolute top-8 right-8 text-slate-400"><X /></button>
-              <h3 className="text-2xl font-black text-slate-800 uppercase mb-8 text-center">Nowe Pole</h3>
+              <h3 className="text-2xl font-black text-slate-800 uppercase mb-8 text-center tracking-tighter">Nowe Pole</h3>
               <form onSubmit={handleSaveField} className="space-y-4">
                  <input name="name" placeholder="Nazwa Pola" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold" required />
                  <div className="grid grid-cols-2 gap-4">
