@@ -9,11 +9,14 @@ const prisma = new PrismaClient();
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user) return NextResponse.json({ error: "Brak sesji" }, { status: 401 });
+    
+    // Jeśli tu wywali błąd w terminalu, znaczy że session jest null
+    if (!session || !session.user?.id) {
+      return NextResponse.json({ error: "Brak autoryzacji - zaloguj się ponownie" }, { status: 401 });
+    }
 
     const data = await req.json();
-    
-    // Zapis do bazy Prisma
+
     const newField = await prisma.field.create({
       data: {
         userId: session.user.id,
@@ -26,7 +29,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json(newField);
   } catch (error) {
-    console.error("Błąd zapisu pola:", error);
-    return NextResponse.json({ error: "Błąd serwera" }, { status: 500 });
+    // Sprawdź logi w terminalu (tam gdzie masz npm run dev) po kliknięciu zapisu!
+    console.error("BŁĄD PRISMA:", error);
+    return NextResponse.json({ error: "Błąd bazy danych (Internal Server Error)" }, { status: 500 });
   }
 }

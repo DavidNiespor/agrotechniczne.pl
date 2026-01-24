@@ -1,4 +1,5 @@
 // @ts-nocheck
+import "./globals.css"; // <--- TA LINIA MUSI BYĆ NA GÓRZE
 import type { Metadata } from 'next'
 import Providers from '../components/Providers';
 
